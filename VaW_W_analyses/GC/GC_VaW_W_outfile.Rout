@@ -1,0 +1,746 @@
+
+R version 3.5.2 (2018-12-20) -- "Eggshell Igloo"
+Copyright (C) 2018 The R Foundation for Statistical Computing
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> #The following code performs reaster analyses that will be used to calculate the 
+> #additive genetic variance for fitness (Va.W) and mean expected fitness (W) for 
+> #the pedigreed "greenhouse" cohort in the Grey Cloud Dunes site for three years (2015-2017)
+> 
+> 
+> #Steps to the analyiss
+> 
+> #   1. Estimate mean expected fitness in "greenhouse" generations, and identify block used
+> #      to represent the site. This block will then be used in the calcualtion of Va(W).
+> 
+> #   2. Reaster models to produce output using block identified in step 1.
+> 
+> #   3. G x Time (environment) analysis
+> 
+> 
+> #Note: the same graphical model is used in all above three steps.
+> 
+> #The varibles occur in the following order:
+> 
+> # 1.  "Germ" -> germination (0=no, 1=yes), Bernoulli
+> # 2.  "flw" -> survival to flowering (0=no, 1=yes), Bernoulli
+> # 3.  "total.pods" -> total number of pods produced, Poisson
+> # 4.  "total.pods.collected" -> number of pods collected (subsampled pods), Poisson
+> # 5.  "totalseeds" -> total number of seeds counted from collected pods, Poisson
+> 
+> 
+> 
+> #################
+> 
+> #Begin with data preparation
+> 
+> #Load 3-year data file for Grey Cloud Dunes
+> 
+> setwd("C:/Users/Mason Kulbaba/Dropbox/Rscripts/chamaecrista-adaptive-capacity/VaW_W_analyses/GC")
+> 
+> gcdat<- read.csv("gcdata.csv")
+> 
+> #divide into year-specific files
+> gc2015<- subset(gcdat, year==2015)
+> gc2016<- subset(gcdat, year==2016)
+> gc2017<- subset(gcdat, year==2017)
+> 
+> #drop unused levels
+> gc2015<- droplevels(gc2015)
+> gc2016<- droplevels(gc2016)
+> gc2017<- droplevels(gc2017)
+> 
+> 
+> ###################################################################################
+> # 1. Estimate mean expected fitness in greenhouse genration for 2015 and 2016 year#
+> ###################################################################################
+> 
+> #isolate greenhouse generation from 2016 and 2017 data (only greenhouse cohort in 2015)
+> gh2016<- subset(gc2016, cohort=="greenhouse")
+> gh2016<- droplevels(gh2016)
+> 
+> gh2017<- subset(gc2017, cohort=="greenhouse")
+> gh2017<- droplevels(gh2017) 
+> 
+> 
+> #make sure maternalID and paternalID is a factor
+> gc2015$maternalID<- as.factor(gc2015$maternalID)
+> gc2015$paternalID<- as.factor(gc2015$paternalID)
+> 
+> gh2016$maternalID<- as.factor(gh2016$maternalID)
+> gh2016$paternalID<- as.factor(gh2016$paternalID)
+> 
+> gh2017$maternalID<- as.factor(gh2017$maternalID)
+> gh2017$paternalID<- as.factor(gh2017$paternalID)
+> 
+> #set response variables -> these represent variables in graphical model
+> vars<- c("Germ","flw","total.pods", "total.pods.collected", "totalseeds")
+> 
+> 
+> #reshape data so that all response variables are located in a single vector in a new data
+> #set called "redata"
+> redata2015 <- reshape(gc2015, varying = list(vars), direction = "long",timevar = "varb", times = as.factor(vars), v.names = "resp")
+> 
+> redata2016 <- reshape(gh2016, varying = list(vars), direction = "long",timevar = "varb", times = as.factor(vars), v.names = "resp")
+> 
+> redata2017 <- reshape(gh2017, varying = list(vars), direction = "long",timevar = "varb", times = as.factor(vars), v.names = "resp")
+> 
+> #Designation of fitness variable for 2015 data
+> fit <- grepl("totalseeds", as.character(redata2015$varb))
+> fit<- as.numeric(fit)
+> 
+> redata2015$fit <- fit
+> 
+> #check
+> with(redata2015, sort(unique(as.character(varb)[fit == 0])))
+[1] "flw"                  "Germ"                 "total.pods"          
+[4] "total.pods.collected"
+> with(redata2015, sort(unique(as.character(varb)[fit == 1])))
+[1] "totalseeds"
+> 
+> 
+> #add a variable "root" to redata files, where value is 1
+> redata2015<- data.frame(redata2015, root=1)
+> redata2016<- data.frame(redata2016, root=1)
+> 
+> 
+> #make sure block, row, and position are factors
+> redata2015$block<- as.factor(redata2015$block)
+> redata2015$row<- as.factor(redata2015$row)
+> redata2015$position<- as.factor(redata2015$position)
+> 
+> redata2016$block<- as.factor(redata2016$block)
+> redata2016$row<- as.factor(redata2016$row)
+> redata2016$position<- as.factor(redata2016$position)
+> 
+> #save(redata2015, file="redata2015.RData")
+> #save(redata2016, file="redata2016.RData")
+> #save(redata2017, file="redata2017.RData")
+> 
+> #load aster package
+> library(aster)
+Loading required package: trust
+> 
+> #set graphical mode and dist. for fitness nodes (preds)
+> pred<- c(0,1,2,3,4)
+> fam<- c(1,1,2,2,2)
+> 
+> #describe dist. of preds.
+> sapply(fam.default(), as.character)[fam]
+[1] "bernoulli" "bernoulli" "poisson"   "poisson"   "poisson"  
+> 
+> #fixed effect model for 2015
+> aout2015a<- aster(resp~varb, pred, fam, varb, id, root, data=redata2015)
+> 
+> aout2015<- aster(resp~varb + fit:(block), pred, fam, varb, id, root, data=redata2015)
+> 
+> anova(aout2015a, aout2015)
+Analysis of Deviance Table
+
+Model 1: resp ~ varb
+Model 2: resp ~ varb + fit:(block)
+  Model Df Model Dev Df Deviance P(>|Chi|)  
+1        5    538.36                        
+2       12    554.48  7   16.121   0.02403 *
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+> 
+> summary(aout2015, show.graph = T)
+
+Call:
+aster.formula(formula = resp ~ varb + fit:(block), pred = pred, 
+    fam = fam, varvar = varb, idvar = id, root = root, data = redata2015)
+
+
+Graphical Model:
+ variable             predecessor          family   
+ Germ                 root                 bernoulli
+ flw                  Germ                 bernoulli
+ total.pods           flw                  poisson  
+ total.pods.collected total.pods           poisson  
+ totalseeds           total.pods.collected poisson  
+
+                          Estimate Std. Error z value Pr(>|z|)    
+(Intercept)              -0.718838   0.120838  -5.949  2.7e-09 ***
+varbGerm                 -1.637590   0.190301  -8.605  < 2e-16 ***
+varbtotal.pods            2.478853   0.138260  17.929  < 2e-16 ***
+varbtotal.pods.collected -5.769000   0.164299 -35.113  < 2e-16 ***
+varbtotalseeds            2.599762   0.121924  21.323  < 2e-16 ***
+fit:block1A              -0.063069   0.035118  -1.796  0.07251 .  
+fit:block2A              -0.069636   0.026694  -2.609  0.00909 ** 
+fit:block3A              -0.025576   0.015749  -1.624  0.10438    
+fit:block4A              -0.008528   0.012402  -0.688  0.49169    
+fit:block5A              -0.024993   0.012924  -1.934  0.05312 .  
+fit:block6A              -0.011133   0.011726  -0.949  0.34243    
+fit:block7A              -0.000947   0.015079  -0.063  0.94993    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Original predictor variables dropped (aliased)
+     fit:block8A 
+> 
+> 
+> #Designate fitness variable for 2016 data
+> fit <- grepl("totalseeds", as.character(redata2016$varb))
+> fit<- as.numeric(fit)
+> 
+> redata2016$fit<- fit
+> 
+> #check
+> with(redata2016, sort(unique(as.character(varb)[fit == 0])))
+[1] "flw"                  "Germ"                 "total.pods"          
+[4] "total.pods.collected"
+> with(redata2016, sort(unique(as.character(varb)[fit == 1])))
+[1] "totalseeds"
+> 
+> #Fixed-effects aster model for 2016 data
+> aout2016a<- aster(resp~varb , pred, fam, varb, id, root, data=redata2016)
+> 
+> aout2016<- aster(resp~varb + fit:(block), pred, fam, varb, id, root, data=redata2016)
+> 
+> anova(aout2016a, aout2016)
+Analysis of Deviance Table
+
+Model 1: resp ~ varb
+Model 2: resp ~ varb + fit:(block)
+  Model Df Model Dev Df Deviance P(>|Chi|)    
+1        5   -3686.7                          
+2       12   -3649.1  7   37.665 3.509e-06 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+> 
+> summary(aout2016, show.graph = T)
+
+Call:
+aster.formula(formula = resp ~ varb + fit:(block), pred = pred, 
+    fam = fam, varvar = varb, idvar = id, root = root, data = redata2016)
+
+
+Graphical Model:
+ variable             predecessor          family   
+ Germ                 root                 bernoulli
+ flw                  Germ                 bernoulli
+ total.pods           flw                  poisson  
+ total.pods.collected total.pods           poisson  
+ totalseeds           total.pods.collected poisson  
+
+                         Estimate Std. Error z value Pr(>|z|)    
+(Intercept)               1.09736    0.09691  11.323  < 2e-16 ***
+varbGerm                 -3.22734    0.16549 -19.501  < 2e-16 ***
+varbtotal.pods           -0.40435    0.12050  -3.356 0.000792 ***
+varbtotal.pods.collected -6.60120    0.16364 -40.339  < 2e-16 ***
+varbtotalseeds            0.69178    0.10017   6.906 4.98e-12 ***
+fit:block1B              -0.07339    0.02803  -2.619 0.008822 ** 
+fit:block2B              -0.01487    0.02326  -0.639 0.522685    
+fit:block3B               0.03533    0.02046   1.727 0.084222 .  
+fit:block4B              -0.04109    0.02195  -1.872 0.061200 .  
+fit:block5B              -0.01353    0.02312  -0.585 0.558387    
+fit:block6B              -0.02522    0.02267  -1.113 0.265787    
+fit:block7B              -0.08864    0.02792  -3.175 0.001498 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Original predictor variables dropped (aliased)
+     fit:block8B 
+> 
+> 
+> #Designation of fitness variable for 2017 data
+> fit <- grepl("totalseeds", as.character(redata2017$varb))
+> fit<- as.numeric(fit)
+> 
+> redata2017$fit <- fit
+> 
+> #check
+> with(redata2017, sort(unique(as.character(varb)[fit == 0])))
+[1] "flw"                  "Germ"                 "total.pods"          
+[4] "total.pods.collected"
+> with(redata2017, sort(unique(as.character(varb)[fit == 1])))
+[1] "totalseeds"
+> 
+> 
+> #add a variable "root" to redata files, where value is 1
+> redata2017<- data.frame(redata2017, root=1)
+> 
+> 
+> #make sure block, row, and position are factors
+> redata2017$block<- as.factor(redata2017$block)
+> redata2017$row<- as.factor(redata2017$row)
+> redata2017$position<- as.factor(redata2017$position)
+> 
+> #check
+> with(redata2017, sort(unique(as.character(varb)[fit == 0])))
+[1] "flw"                  "Germ"                 "total.pods"          
+[4] "total.pods.collected"
+> with(redata2017, sort(unique(as.character(varb)[fit == 1])))
+[1] "totalseeds"
+> 
+> #Fixed-effects aster model for 2016 data
+> aout2017a<- aster(resp~varb, pred, fam, varb, id, root, data=redata2017)
+> 
+> aout2017<- aster(resp~varb + fit:(block), pred, fam, varb, id, root, data=redata2017)
+> 
+> anova(aout2017a, aout2017)
+Analysis of Deviance Table
+
+Model 1: resp ~ varb
+Model 2: resp ~ varb + fit:(block)
+  Model Df Model Dev Df Deviance P(>|Chi|)    
+1        5    6520.4                          
+2       12    6584.3  7   63.928 2.469e-11 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+> 
+> summary(aout2017, show.graph = T)
+
+Call:
+aster.formula(formula = resp ~ varb + fit:(block), pred = pred, 
+    fam = fam, varvar = varb, idvar = id, root = root, data = redata2017)
+
+
+Graphical Model:
+ variable             predecessor          family   
+ Germ                 root                 bernoulli
+ flw                  Germ                 bernoulli
+ total.pods           flw                  poisson  
+ total.pods.collected total.pods           poisson  
+ totalseeds           total.pods.collected poisson  
+
+                          Estimate Std. Error z value Pr(>|z|)    
+(Intercept)              -4.664511   0.149320 -31.238  < 2e-16 ***
+varbGerm                  2.513476   0.199180  12.619  < 2e-16 ***
+varbtotal.pods            7.349260   0.164455  44.688  < 2e-16 ***
+varbtotal.pods.collected -2.819438   0.185548 -15.195  < 2e-16 ***
+varbtotalseeds            6.590423   0.151273  43.566  < 2e-16 ***
+fit:block1C              -0.011073   0.022020  -0.503  0.61507    
+fit:block2C               0.007458   0.020185   0.369  0.71179    
+fit:block3C               0.003069   0.020679   0.148  0.88203    
+fit:block4C              -0.049157   0.027088  -1.815  0.06956 .  
+fit:block5C               0.011223   0.021439   0.523  0.60065    
+fit:block6C              -0.015921   0.022352  -0.712  0.47630    
+fit:block7C               0.056529   0.019569   2.889  0.00387 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Original predictor variables dropped (aliased)
+     fit:block8C 
+> 
+> 
+> ##############################################################
+> #Estimate mean fitness for 2015, 2016 (greenhouse cohort), and 2017 (greenhouse cohort) data
+> 
+> #generate MLE of saturated model mean value parameter vector: mu
+> pout2015<- predict.aster(aout2015, se.fit=TRUE)
+> pout2016<- predict.aster(aout2016, se.fit=TRUE)
+> pout2017<- predict.aster(aout2017, se.fit=TRUE)
+> 
+> 
+> #make up covariate data for hypothetical
+> #indivs that meet "typical" criteria:
+> #Therefore, "make up" covariate data for hypothetical individuals
+> #that re comparable and obtain mean values for them
+> ##############
+> 
+> #make data.frame of indivudals for each block (1-8)
+> fred2015 <- data.frame(block=levels(redata2015$block),
++                    Germ=1, flw=1, total.pods=1, total.pods.collected=1, totalseeds=1,root = 1)
+> 
+> fred2016 <- data.frame(block=levels(redata2016$block),
++                        Germ=1, flw=1, total.pods=1, total.pods.collected=1, totalseeds=1,root = 1)
+> 
+> fred2017 <- data.frame(block=levels(redata2017$block),
++                        Germ=1, flw=1, total.pods=1, total.pods.collected=1, totalseeds=1,root = 1)
+> 
+> 
+> #reshape the "made up data" just as the actual data
+> renewdata2015 <- reshape(fred2015, varying = list(vars),
++                      direction = "long", timevar = "varb",
++                      times = as.factor(vars), v.names = "resp")
+> 
+> renewdata2016 <- reshape(fred2016, varying = list(vars),
++                          direction = "long", timevar = "varb",
++                          times = as.factor(vars), v.names = "resp")
+> 
+> renewdata2017 <- reshape(fred2017, varying = list(vars),
++                          direction = "long", timevar = "varb",
++                          times = as.factor(vars), v.names = "resp")
+> 
+> #make character string from "varb" of renewdata,
+> #without actual values (e.g., the layers of varb in renewdata)
+> layer<- gsub("[0-9]", "", as.character(renewdata2015$varb))
+> layer<- gsub("[0-9]", "", as.character(renewdata2016$varb))
+> layer<- gsub("[0-9]", "", as.character(renewdata2017$varb))
+> 
+> #add layer to renewdata
+> renewdata2015<- data.frame(renewdata2015, layer= layer)
+> renewdata2016<- data.frame(renewdata2016, layer= layer)
+> renewdata2017<- data.frame(renewdata2017, layer= layer)
+> 
+> # add totalseeds in new layer col of renewdata as numeric, called fit
+> fit<- as.numeric(layer=="totalseeds")
+> 
+> #add fit to renewdata
+> renewdata2015<- data.frame(renewdata2015, fit = fit)
+> renewdata2016<- data.frame(renewdata2016, fit = fit)
+> renewdata2017<- data.frame(renewdata2017, fit = fit)
+> 
+> 
+> #Generate fintess estimates and standard errors for each block
+> nblock<- nrow(fred2015)#all data has same number of blocks so any file will do
+> nnode<- length(vars)
+> amat<- array(0, c(nblock, nnode, nblock))
+> dim(amat)# makes an 8 x 5 x 8 matrix
+[1] 8 5 8
+> 
+> #only want means for k'th individual that contributes to expected
+> #fitness, and want to add only totalseeds entries
+> 
+> #makes 8 , 4x8 matrices that 
+> 
+> foo<- grepl("totalseeds", vars)
+> for(k in 1:nblock)
++   amat[k, foo, k]<- 1
+> 
+> #generate predicted valuses using aout object, with renewdata, and amat format
+> pout.amat2015<- predict(aout2015, newdata= renewdata2015, varvar= varb,
++                     idvar= id, root = root, se.fit=TRUE, amat = amat)
+> 
+> pout.amat2016<- predict(aout2016, newdata= renewdata2016, varvar= varb,
++                         idvar= id, root = root, se.fit=TRUE, amat = amat)
+> 
+> pout.amat2017<- predict(aout2017, newdata= renewdata2017, varvar= varb,
++                         idvar= id, root = root, se.fit=TRUE, amat = amat)
+> 
+> #combine std.err with estimates, and then round
+> #to three decimal places
+> gc2015<- cbind(pout.amat2015$fit, pout.amat2015$se.fit)
+> gc2016<- cbind(pout.amat2016$fit, pout.amat2016$se.fit)
+> gc2017<- cbind(pout.amat2017$fit, pout.amat2017$se.fit)
+> 
+> rownames(gc2015)<- as.character(fred2015$block)
+> rownames(gc2016)<- as.character(fred2016$block)
+> rownames(gc2017)<- as.character(fred2017$block)
+> 
+> colnames(gc2015)<- c("Expected Fitness", "SE")
+> colnames(gc2016)<- c("Expected Fitness", "SE")
+> colnames(gc2017)<- c("Expected Fitness", "SE")
+> 
+> 
+> #####################################################################
+> #The median expected fitness for each year is used to represent     #
+> #the site-specific fitness. The block effects representing these    #
+> # fitness values will be used to calcualte and convert  Va(W)       #
+> #estimates from the canonical to man-value parameter scale          #
+> #####################################################################
+> 
+> round(gc2015, 3) # median: block 6 - 1.112
+   Expected Fitness    SE
+1A            0.528 0.233
+2A            0.486 0.156
+3A            0.888 0.189
+4A            1.160 0.195
+5A            0.896 0.147
+6A            1.112 0.169
+7A            1.316 0.299
+8A            1.337 0.158
+> round(gc2016, 3) # median: block 6 - 0.640
+   Expected Fitness    SE
+1B            0.364 0.088
+2B            0.733 0.162
+3B            1.572 0.329
+4B            0.525 0.092
+5B            0.747 0.164
+6B            0.640 0.128
+7B            0.310 0.071
+8B            0.902 0.213
+> round(gc2017, 3) # median: block 7 - 1.062
+   Expected Fitness    SE
+1C            0.884 0.169
+2C            1.209 0.169
+3C            1.120 0.176
+4C            0.501 0.135
+5C            1.293 0.249
+6C            0.818 0.161
+7C            3.232 0.442
+8C            1.062 0.336
+> 
+> 
+> #############################################################################
+> 
+> # 2. Reaster analyses for 2015, 2016, and 2017 greenhouse cohort. For clarity, the 
+> #    actual calculation of Va(W) will be performed in a different script (Vaw_Calculation.R).
+> 
+> 
+> ####combine maternal and paternal into a single parental effect to be estimated
+> modmat.sire2015 <- model.matrix(~ 0 + fit:paternalID, redata2015)
+> modmat.dam2015 <- model.matrix(~ 0 + fit:maternalID, redata2015)
+> modmat.siredam2015 <- cbind(modmat.sire2015,modmat.dam2015)
+> 
+> modmat.sire2016 <- model.matrix(~ 0 + fit:paternalID, redata2016)
+> modmat.dam2016 <- model.matrix(~ 0 + fit:maternalID, redata2016)
+> modmat.siredam2016 <- cbind(modmat.sire2016,modmat.dam2016)
+> 
+> modmat.sire2017 <- model.matrix(~ 0 + fit:paternalID, redata2017)
+> modmat.dam2017 <- model.matrix(~ 0 + fit:maternalID, redata2017)
+> modmat.siredam2017 <- cbind(modmat.sire2017,modmat.dam2017)
+> 
+> #save(modmat.siredam2015, file="modmat.siredam2015.RData")
+> #save(modmat.siredam2016, file="modmat.siredam2016.RData")
+> #save(modmat.siredam2017, file="modmat.siredam2017.RData")
+> 
+> #Reaster analyses
+> 
+> #NOTE: we will use the same graphical model and statistical distributions that we used
+> #      in the fixed-effects aster models to estiamte mean expected fitness
+> 
+> 
+> 
+> #2015 analysis
+> rout2015a<- reaster(resp~varb,list(parental=~0 + fit:modmat.siredam2015),
++                    +pred, fam, varb, id, root, data=redata2015) 
+> 
+> rout2015<- reaster(resp~varb +fit:(block),list(parental=~0 + fit:modmat.siredam2015),
++                 +pred, fam, varb, id, root, data=redata2015) 
+> 
+> anova(rout2015a, rout2015)
+Analysis of Deviance Table
+
+Model 1: resp ~ varb, ~0 + fit:modmat.siredam2015
+Model 2: resp ~ varb + fit:(block), ~0 + fit:modmat.siredam2015
+  Mod Df Fix Mod Df Rand Mod Dev Df Fix Df Rand Deviance P-value
+1          5           1  721.26                                
+2         12           1  732.80      7       0   11.538 0.11682
+> 
+> summary(rout2015)
+
+Call:
+reaster.formula(fixed = resp ~ varb + fit:(block), random = list(parental = ~0 + 
+    fit:modmat.siredam2015), pred = +pred, fam = fam, varvar = varb, 
+    idvar = id, root = root, data = redata2015)
+
+
+Fixed Effects:
+                           Estimate Std. Error z value Pr(>|z|)    
+(Intercept)              -0.6170011  0.1200944  -5.138 2.78e-07 ***
+varbGerm                 -1.7394275  0.1898296  -9.163  < 2e-16 ***
+varbtotal.pods            2.3891068  0.1374035  17.388  < 2e-16 ***
+varbtotal.pods.collected -5.7759664  0.1622269 -35.604  < 2e-16 ***
+varbtotalseeds            2.4210108  0.1230761  19.671  < 2e-16 ***
+fit:block1A              -0.0393392  0.0348253  -1.130  0.25864    
+fit:block2A              -0.0713848  0.0268099  -2.663  0.00775 ** 
+fit:block3A              -0.0027665  0.0164842  -0.168  0.86672    
+fit:block4A              -0.0038192  0.0129644  -0.295  0.76830    
+fit:block5A              -0.0098025  0.0137528  -0.713  0.47599    
+fit:block6A              -0.0031471  0.0119469  -0.263  0.79222    
+fit:block7A               0.0004257  0.0152197   0.028  0.97769    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Square Roots of Variance Components (P-values are one-tailed):
+         Estimate Std. Error z value Pr(>|z|)/2    
+parental 0.071297   0.008314   8.575     <2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+> 
+> #save(rout2015, file="rout2015.RData")
+> 
+> 
+> #2016 analysis
+> rout2016a<- reaster(resp~varb,list(parental=~0 + fit:modmat.siredam2016),
++                    +pred, fam, varb, id, root, data=redata2016)
+> 
+> rout2016<- reaster(resp~varb +fit:(block),list(parental=~0 + fit:modmat.siredam2016),
++                     +pred, fam, varb, id, root, data=redata2016)
+> anova(rout2016a, rout2016)
+Analysis of Deviance Table
+
+Model 1: resp ~ varb, ~0 + fit:modmat.siredam2016
+Model 2: resp ~ varb + fit:(block), ~0 + fit:modmat.siredam2016
+  Mod Df Fix Mod Df Rand Mod Dev Df Fix Df Rand Deviance  P-value
+1          5           1 -3585.1                                 
+2         12           1 -3552.9      7       0   32.212 3.71e-05
+> 
+> 
+> summary(rout2016) 
+
+Call:
+reaster.formula(fixed = resp ~ varb + fit:(block), random = list(parental = ~0 + 
+    fit:modmat.siredam2016), pred = +pred, fam = fam, varvar = varb, 
+    idvar = id, root = root, data = redata2016)
+
+
+Fixed Effects:
+                          Estimate Std. Error z value Pr(>|z|)    
+(Intercept)               1.127826   0.096604  11.675  < 2e-16 ***
+varbGerm                 -3.257807   0.165315 -19.707  < 2e-16 ***
+varbtotal.pods           -0.412748   0.119907  -3.442 0.000577 ***
+varbtotal.pods.collected -6.545629   0.162428 -40.299  < 2e-16 ***
+varbtotalseeds            0.590376   0.101826   5.798 6.72e-09 ***
+fit:block1B              -0.064385   0.027586  -2.334 0.019595 *  
+fit:block2B              -0.014240   0.022629  -0.629 0.529178    
+fit:block3B               0.051115   0.022928   2.229 0.025787 *  
+fit:block4B              -0.020950   0.022689  -0.923 0.355823    
+fit:block5B               0.001292   0.022502   0.057 0.954229    
+fit:block6B              -0.011211   0.023064  -0.486 0.626910    
+fit:block7B              -0.073067   0.028125  -2.598 0.009378 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Square Roots of Variance Components (P-values are one-tailed):
+         Estimate Std. Error z value Pr(>|z|)/2    
+parental 0.065410   0.008314   7.867   1.81e-15 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+> 
+> #save(rout2016, file="rout2016.RData")
+> 
+> 
+> #2017 analysis
+> rout2017a<- reaster(resp~varb,list(parental=~0 + fit:modmat.siredam2017),
++                    +pred, fam, varb, id, root, data=redata2017) 
+> 
+> rout2017<- reaster(resp~varb +fit:(block),list(parental=~0 + fit:modmat.siredam2017),
++                    +pred, fam, varb, id, root, data=redata2017)
+> 
+> 
+> anova(rout2017a, rout2017)
+Analysis of Deviance Table
+
+Model 1: resp ~ varb, ~0 + fit:modmat.siredam2017
+Model 2: resp ~ varb + fit:(block), ~0 + fit:modmat.siredam2017
+  Mod Df Fix Mod Df Rand Mod Dev Df Fix Df Rand Deviance    P-value
+1          5           1  6718.6                                   
+2         12           1  6775.8      7       0   57.215 5.4183e-10
+> 
+> summary(rout2017)
+
+Call:
+reaster.formula(fixed = resp ~ varb + fit:(block), random = list(parental = ~0 + 
+    fit:modmat.siredam2017), pred = +pred, fam = fam, varvar = varb, 
+    idvar = id, root = root, data = redata2017)
+
+
+Fixed Effects:
+                          Estimate Std. Error z value Pr(>|z|)    
+(Intercept)              -4.522709   0.148503 -30.455   <2e-16 ***
+varbGerm                  2.371673   0.198568  11.944   <2e-16 ***
+varbtotal.pods            7.211594   0.163641  44.070   <2e-16 ***
+varbtotal.pods.collected -2.871730   0.183327 -15.665   <2e-16 ***
+varbtotalseeds            6.410811   0.151591  42.290   <2e-16 ***
+fit:block1C              -0.031827   0.023016  -1.383   0.1667    
+fit:block2C              -0.023135   0.021779  -1.062   0.2881    
+fit:block3C              -0.022905   0.022126  -1.035   0.3006    
+fit:block4C              -0.059374   0.028003  -2.120   0.0340 *  
+fit:block5C              -0.006869   0.022620  -0.304   0.7614    
+fit:block6C              -0.033992   0.023461  -1.449   0.1474    
+fit:block7C               0.039963   0.021482   1.860   0.0628 .  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Square Roots of Variance Components (P-values are one-tailed):
+         Estimate Std. Error z value Pr(>|z|)/2    
+parental 0.056299   0.006706   8.396     <2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+> 
+> #save(rout2017, file="rout2017.RData")
+> 
+> 
+> #####################################
+> # 3. G x Time (environment) analysis#
+> #####################################
+> 
+> library(aster)
+> 
+> gcdat<- read.csv("gcdata.csv")
+> 
+> #subset only greenhouse cohort form all three years of data
+> 
+> gh<- subset(gcdat, cohort=="greenhouse")
+> 
+> gh<- droplevels(gh)
+> 
+> #make sure block, row, and position are factors
+> gh$block<- as.factor(gh$block)
+> gh$row<- as.factor(gh$row)
+> gh$position<- as.factor(gh$position)
+> gh$year<- as.factor(gh$year)
+> gh$maternalID<- as.factor(gh$maternalID)
+> gh$paternalID<- as.factor(gh$paternalID)
+> 
+> #set response variables -> these represent variables in graphical model
+> vars<- c("Germ","flw","total.pods", "total.pods.collected", "totalseeds")
+> 
+> 
+> #reshape data so that all response variables are located in a single vector in a new data
+> #set called "redata"
+> redata <- reshape(gh, varying = list(vars), direction = "long",timevar = "varb", times = as.factor(vars), v.names = "resp")
+> 
+> 
+> #Designation of fitness variable: totalseeds
+> fit <- grepl("totalseeds", as.character(redata$varb))
+> fit<- as.numeric(fit)
+> redata$fit <- fit
+> 
+> #set graphical mode and dist. for fitness nodes (preds)
+> pred<- c(0,1,2,3,4)
+> fam<- c(1,1,2,2,2)
+> 
+> #check
+> with(redata, sort(unique(as.character(varb)[fit == 0])))
+[1] "flw"                  "Germ"                 "total.pods"          
+[4] "total.pods.collected"
+> with(redata, sort(unique(as.character(varb)[fit == 1])))
+[1] "totalseeds"
+> 
+> 
+> #add a variable "root" to redata files, where value is 1
+> redata<- data.frame(redata, root=1)
+> 
+> 
+> ####combine maternal and paternal into a single parental effect to be estimated
+> modmat.sire <- model.matrix(~ 0 + fit:paternalID, redata)
+> modmat.dam <- model.matrix(~ 0 + fit:maternalID, redata)
+> modmat.siredam <- cbind(modmat.sire,modmat.dam)
+> 
+> 
+> #G x Time reaster analysis
+> routGxTime.a<- reaster(resp~varb,list(parental=~0 + fit:modmat.siredam), +pred, fam, varb, id, root, data=redata) #without block
+> 
+> routGxTime.b<- reaster(resp~varb + fit:(block),list(parental=~0 + fit:modmat.siredam),+pred, fam, varb, id, root, data=redata) #with block
+> 
+> anova(routGxTime.a, routGxTime.b) #likelihood ratio test for effect of "block"
+Analysis of Deviance Table
+
+Model 1: resp ~ varb, ~0 + fit:modmat.siredam
+Model 2: resp ~ varb + fit:(block), ~0 + fit:modmat.siredam
+  Mod Df Fix Mod Df Rand Mod Dev Df Fix Df Rand Deviance   P-value
+1          5           1  1253.0                                  
+2         28           1  1412.9     23       0   159.91 1.739e-22
+> 
+> routGxTime.c<- reaster(resp~varb+ fit:(year),list(parental=~0 + fit:modmat.siredam), +pred, fam, varb, id, root, data=redata) #with block and year
+> 
+> anova(routGxTime.a, routGxTime.c)#likelihood ratio test for effect of "year"
+Analysis of Deviance Table
+
+Model 1: resp ~ varb, ~0 + fit:modmat.siredam
+Model 2: resp ~ varb + fit:(year), ~0 + fit:modmat.siredam
+  Mod Df Fix Mod Df Rand Mod Dev Df Fix Df Rand Deviance    P-value
+1          5           1  1253.0                                   
+2          7           1  1300.3      2       0   47.275 5.4251e-11
+> 
+> routGxTime<- reaster(resp~varb +fit:(block + year),list(parental=~0 + fit:modmat.siredam, parental.time=~0 + fit:modmat.siredam:year),+pred, fam, varb, id, root, data=redata)#full model 
