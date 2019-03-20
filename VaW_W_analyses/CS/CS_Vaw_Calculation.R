@@ -2,7 +2,7 @@
 # The following code calculates the additive genetic effects on total lifetime fitness
 # from the three reaster output files generated in: CS_W_reaster_analyses.R
 
-setwd("C:/Users/Mason Kulbaba/Dropbox/Rscripts/Final_VaW_Wbar/CS")
+setwd()
 
 #Load reaster 
 

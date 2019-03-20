@@ -6,7 +6,7 @@
 #########################################################################
 
 
-setwd("C:/Users/Mason Kulbaba/Dropbox/Rscripts/chamaecrista-adaptive-capacity/bootstrap/GC/2015")
+setwd()
 
 # load packages
 library(aster)

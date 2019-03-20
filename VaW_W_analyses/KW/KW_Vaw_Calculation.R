@@ -2,7 +2,7 @@
 # The following code calculates the additive genetic effects on total lifetime fitness
 # from the three reaster output files generated in: KW_W_reaster_analyses.R
 
-setwd("C:/Users/Mason Kulbaba/Dropbox/Rscripts/chamaecrista-adaptive-capacity/VaW_W_analyses/KW")
+setwd()
 
 #Load reaster 
 

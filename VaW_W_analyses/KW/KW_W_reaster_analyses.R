@@ -32,7 +32,7 @@
 
 #Load 3-year data file for Grey Cloud Dunes
 
-setwd("C:/Users/Mason Kulbaba/Dropbox/Rscripts/chamaecrista-adaptive-capacity/VaW_W_analyses/KW")
+setwd()
 
 kwdat<- read.csv("kwdata.csv")
 

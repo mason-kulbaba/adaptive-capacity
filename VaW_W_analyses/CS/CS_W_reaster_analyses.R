@@ -32,7 +32,7 @@
 
 #Load 3-year data file for CERA
 
-setwd("C:/Users/Mason Kulbaba/Dropbox/git/adaptive-capacity/VaW_W_analyses/CS")
+setwd()
 
 csdat<- read.csv("csdata.csv")
 
