@@ -1,0 +1,66 @@
+GC2015B/GC2015_bootstrap.R:# set outer (nboot) and inner (ndoubleboot)
+GC2015B/GC2015_bootstrap.R:nboot <- 10
+GC2015B/GC2015_bootstrap.R:alpha.star <- matrix(NaN, nboot, length(alpha.hat))
+GC2015B/GC2015_bootstrap.R:sigma.star <- matrix(NaN, nboot, length(sigma.hat))
+GC2015B/GC2015_bootstrap.R:nu.star <- matrix(NaN, nboot, length(nu.hat))
+GC2015B/GC2015_bootstrap.R:GC_Va.star <- rep(-1, nboot)
+GC2015B/GC2015_bootstrap.R:se.GC_Va.star <- rep(-1, nboot)
+GC2015B/GC2015_bootstrap.R:se.GC_Va.star_sd <- rep(-1, nboot)
+GC2015B/GC2015_bootstrap.R:for (iboot in 1:nboot) {
+GC2015B/GC2015_bootstrap.R:  print(GC_Va.star[iboot]) # will print outer bootstrap estimate for each nboot interation
+GC2015B/GC2015_bootstrap.R:#foo <- GC_Va.star[1:nboot]    # the outer loop Va's
+GC2015C/GC2015_bootstrap.R:# set outer (nboot) and inner (ndoubleboot)
+GC2015C/GC2015_bootstrap.R:nboot <- 20
+GC2015C/GC2015_bootstrap.R:alpha.star <- matrix(NaN, nboot, length(alpha.hat))
+GC2015C/GC2015_bootstrap.R:sigma.star <- matrix(NaN, nboot, length(sigma.hat))
+GC2015C/GC2015_bootstrap.R:nu.star <- matrix(NaN, nboot, length(nu.hat))
+GC2015C/GC2015_bootstrap.R:GC_Va.star <- rep(-1, nboot)
+GC2015C/GC2015_bootstrap.R:se.GC_Va.star <- rep(-1, nboot)
+GC2015C/GC2015_bootstrap.R:se.GC_Va.star_sd <- rep(-1, nboot)
+GC2015C/GC2015_bootstrap.R:for (iboot in 1:nboot) {
+GC2015C/GC2015_bootstrap.R:  print(GC_Va.star[iboot]) # will print outer bootstrap estimate for each nboot interation
+GC2015C/GC2015_bootstrap.R:#foo <- GC_Va.star[1:nboot]    # the outer loop Va's
+GC2015D/GC2015_bootstrap.R:# set outer (nboot) and inner (ndoubleboot)
+GC2015D/GC2015_bootstrap.R:nboot <- 20
+GC2015D/GC2015_bootstrap.R:alpha.star <- matrix(NaN, nboot, length(alpha.hat))
+GC2015D/GC2015_bootstrap.R:sigma.star <- matrix(NaN, nboot, length(sigma.hat))
+GC2015D/GC2015_bootstrap.R:nu.star <- matrix(NaN, nboot, length(nu.hat))
+GC2015D/GC2015_bootstrap.R:GC_Va.star <- rep(-1, nboot)
+GC2015D/GC2015_bootstrap.R:se.GC_Va.star <- rep(-1, nboot)
+GC2015D/GC2015_bootstrap.R:se.GC_Va.star_sd <- rep(-1, nboot)
+GC2015D/GC2015_bootstrap.R:for (iboot in 1:nboot) {
+GC2015D/GC2015_bootstrap.R:  print(GC_Va.star[iboot]) # will print outer bootstrap estimate for each nboot interation
+GC2015D/GC2015_bootstrap.R:#foo <- GC_Va.star[1:nboot]    # the outer loop Va's
+GC2015E/GC2015_bootstrap.R:# set outer (nboot) and inner (ndoubleboot)
+GC2015E/GC2015_bootstrap.R:nboot <- 10
+GC2015E/GC2015_bootstrap.R:alpha.star <- matrix(NaN, nboot, length(alpha.hat))
+GC2015E/GC2015_bootstrap.R:sigma.star <- matrix(NaN, nboot, length(sigma.hat))
+GC2015E/GC2015_bootstrap.R:nu.star <- matrix(NaN, nboot, length(nu.hat))
+GC2015E/GC2015_bootstrap.R:GC_Va.star <- rep(-1, nboot)
+GC2015E/GC2015_bootstrap.R:se.GC_Va.star <- rep(-1, nboot)
+GC2015E/GC2015_bootstrap.R:se.GC_Va.star_sd <- rep(-1, nboot)
+GC2015E/GC2015_bootstrap.R:for (iboot in 1:nboot) {
+GC2015E/GC2015_bootstrap.R:  print(GC_Va.star[iboot]) # will print outer bootstrap estimate for each nboot interation
+GC2015E/GC2015_bootstrap.R:#foo <- GC_Va.star[1:nboot]    # the outer loop Va's
+GC2015F/GC2015_bootstrap.R:# set outer (nboot) and inner (ndoubleboot)
+GC2015F/GC2015_bootstrap.R:nboot <- 10
+GC2015F/GC2015_bootstrap.R:alpha.star <- matrix(NaN, nboot, length(alpha.hat))
+GC2015F/GC2015_bootstrap.R:sigma.star <- matrix(NaN, nboot, length(sigma.hat))
+GC2015F/GC2015_bootstrap.R:nu.star <- matrix(NaN, nboot, length(nu.hat))
+GC2015F/GC2015_bootstrap.R:GC_Va.star <- rep(-1, nboot)
+GC2015F/GC2015_bootstrap.R:se.GC_Va.star <- rep(-1, nboot)
+GC2015F/GC2015_bootstrap.R:se.GC_Va.star_sd <- rep(-1, nboot)
+GC2015F/GC2015_bootstrap.R:for (iboot in 1:nboot) {
+GC2015F/GC2015_bootstrap.R:  print(GC_Va.star[iboot]) # will print outer bootstrap estimate for each nboot interation
+GC2015F/GC2015_bootstrap.R:#foo <- GC_Va.star[1:nboot]    # the outer loop Va's
+GC2015/GC2015_bootstrap.R:# set outer (nboot) and inner (ndoubleboot)
+GC2015/GC2015_bootstrap.R:nboot <- 10
+GC2015/GC2015_bootstrap.R:alpha.star <- matrix(NaN, nboot, length(alpha.hat))
+GC2015/GC2015_bootstrap.R:sigma.star <- matrix(NaN, nboot, length(sigma.hat))
+GC2015/GC2015_bootstrap.R:nu.star <- matrix(NaN, nboot, length(nu.hat))
+GC2015/GC2015_bootstrap.R:GC_Va.star <- rep(-1, nboot)
+GC2015/GC2015_bootstrap.R:se.GC_Va.star <- rep(-1, nboot)
+GC2015/GC2015_bootstrap.R:se.GC_Va.star_sd <- rep(-1, nboot)
+GC2015/GC2015_bootstrap.R:for (iboot in 1:nboot) {
+GC2015/GC2015_bootstrap.R:  print(GC_Va.star[iboot]) # will print outer bootstrap estimate for each nboot interation
+GC2015/GC2015_bootstrap.R:#foo <- GC_Va.star[1:nboot]    # the outer loop Va's
