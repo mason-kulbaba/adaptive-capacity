@@ -6,7 +6,7 @@
 #########################################################################
 
 
-setwd()
+setwd("C:/Users/Mason Kulbaba/Dropbox/git/adaptive-capacity/confidence_intervals/KW/2017")
 
 
 # load packages
@@ -92,7 +92,7 @@ VaW <- function (rout2017){
   # SE
   se <- 4*moom.star[2302,5]^2 * sout$nu["parental", "Std. Error"]/map(0)
   ci <- c(est - 1.96*se, est, est + 1.96*se)
-  return(ci)
+  return(list(se, ci))
 }
 
 #########################################################################

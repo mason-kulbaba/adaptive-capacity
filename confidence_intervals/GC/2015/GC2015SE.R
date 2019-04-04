@@ -6,7 +6,7 @@
 #########################################################################
 
 
-setwd()
+setwd("C:/Users/Mason Kulbaba/Dropbox/git/adaptive-capacity/confidence_intervals/GC/2015")
 
 # load packages
 library(aster)
@@ -91,7 +91,7 @@ VaW <- function (rout2015){
   # SE
   se <- 4*moom.star[1875,5]^2 * sout$nu["parental", "Std. Error"]/map(0)
   ci <- c(est - 1.96*se, est, est + 1.96*se)
-  return(ci)
+  return(list(se, ci))
 }
 
 #########################################################################
