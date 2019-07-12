@@ -80,6 +80,19 @@ moom<- matrix(moom, ncol=5)
 CS_Va2015<- 4*moom[1 ,5]^2 * rout2015$nu[1]/map(0) 
 CS_Va2015 #3.204069
 
+
+#recall fitness in 2015 = 1.80
+
+#predicted change in fitness
+CS_Va2015/1.80
+
+
+sout<- summary(rout2015)
+
+#standard error for predicted change in fitness
+4*moom[1 ,5]^2 * sout$nu["parental", "Std. Error"]/1.80
+
+
 #########################
 #Estimate Va(W) for 2016#
 #########################
@@ -143,6 +156,16 @@ moom<- matrix(moom, ncol=5)
 CS_Va2016<- 4*moom[251 ,5]^2 * rout2016$nu[1]/map(0)
 CS_Va2016 #0.8562831
 
+sout<-summary(rout2016)
+
+#recall mean fitness in 2016 = 0.73
+
+#predicted change in fitness
+CS_Va2016/0.73
+
+#standard error of predicted change in fitness
+
+4*moom[251 ,5]^2 * sout$nu["parental", "Std. Error"]/0.73
 
 #########################
 #Estimate Va(W) for 2017#
@@ -209,3 +232,13 @@ moom<- matrix(moom, ncol=5)
 #this is additive genetic variation for fitness!
 CS_Va2017<- 4*moom[971 ,5]^2 * rout2017$nu[1]/map(0) 
 CS_Va2017 #1.572956
+
+sout<-summary(rout2017)
+
+#recall mean fitness in 2017 = 1.24
+
+#predicted chagne in fitness
+CS_Va2017/1.24
+
+#standard error of prediction
+4*moom[971 ,5]^2 * sout$nu["parental", "Std. Error"]/1.24

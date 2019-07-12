@@ -80,6 +80,96 @@ moom<- matrix(moom, ncol=5)
 GC_Va<- 4*moom[1874 ,5]^2 * rout2015$nu[1]/map(0) 
 GC_Va #1.8576
 
+#recall mean fitness in 2015 = 1.11
+
+#predicted change in fitness from FFTNS:
+
+GC_Va/1.11
+
+#alternate way to get Va(W)
+hoom <- predict(rout2015$obj, newcoef = rout2015$alpha, gradient = TRUE)
+goom <- hoom$gradient
+
+
+
+moom <- goom[ , 5]
+moom <- matrix(moom, ncol = 5)
+moom[1874, 5]
+
+#very close
+4 * moom[1874, 5]^2 * rout2015$nu[1]
+
+
+
+
+#Standard Error for predicted change in fitness
+
+sout<- summary(rout2015)
+
+sout
+
+4*moom[1874 ,5]^2 * sout$nu["parental", "Std. Error"]/1.11
+
+
+#OK, very nice. Now see how this standard error compares with that generated from a
+#more "rigorous" method
+
+#inv. Fisher info.
+
+fisher <- sout$fisher
+eout <- eigen(fisher, symmetric = TRUE)
+
+fisher.inv <- eout$vectors %*% diag(1/eout$values) %*% t(eout$vectors)
+
+dim(fisher)
+
+dim(fisher.inv)
+
+length(rout2015$alpha)
+
+length(rout2015$nu)
+
+#check - NOTE: changed from [6, 6] that was in Charlie's origional code
+sqrt(fisher.inv[13, 13])
+
+#good are the same
+sout$nu["parental", "Std. Error"]
+
+
+
+
+ioom <- seq(along = hoom$fit)
+ioom <- matrix(ioom, ncol = 5)
+idx <- ioom[1874, 5]
+idx
+
+g <- hoom$gradient[idx, ]
+
+
+#check
+predict(rout2015$obj, newcoef = rout2015$alpha, se.fit = TRUE)$se.fit[idx]
+
+sqrt(t(g) %*% solve(rout2015$obj$fisher) %*% g)
+
+#apply delta method for predicted change in fitness
+g <- c(g, 0, 0)
+
+
+xi.hat <- rout2015$nu[1]
+eta.hat <- foom[1874, 5]
+
+
+v.nu <- fisher.inv[13, 13]
+
+
+v.meanfit <- t(g) %*% fisher.inv %*% g
+v.nu.meanfit <- (fisher.inv %*% g)[13]
+
+
+
+
+
+
 
 #########################
 #Estimate Va(W) for 2016#
@@ -143,6 +233,16 @@ moom<- matrix(moom, ncol=5)
 #this is additive genetic variation for fitness!
 GC_Va<- 4*moom[2274 ,5]^2 * rout2016$nu[1]/map(0)
 GC_Va #0.83021
+
+#recall mean fitness in 2016 = 0.64
+
+#Predicted change in fitness
+
+GC_Va/0.64
+
+sout<-summary(rout2016)
+
+4*moom[2274 ,5]^2 * sout$nu["parental", "Std. Error"]/0.64
 
 
 #########################
@@ -211,3 +311,13 @@ moom<- matrix(moom, ncol=5)
 GC_Va<- 4*moom[3126 ,5]^2 * rout2017$nu[1]/map(0) 
 GC_Va #6.49131
 
+#recall mean fitness in 2017 = 1.06
+
+#predicted change in fitness
+
+GC_Va/1.06
+
+
+sout<-summary(rout2017)
+
+4*moom[3126 ,5]^2 * sout$nu["parental", "Std. Error"]/1.06
