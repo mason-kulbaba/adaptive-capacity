@@ -32,7 +32,7 @@
 
 #Load 3-year data file for Grey Cloud Dunes
 
-setwd()
+setwd("C:/Users/Mason Kulbaba/Dropbox/git/adaptive-capacity/VaW_W_analyses/KW")
 
 kwdat<- read.csv("kwdata.csv")
 
@@ -369,42 +369,42 @@ modmat.siredam2017 <- cbind(modmat.sire2017,modmat.dam2017)
 rout2015a<- reaster(resp~varb,list(parental=~0 + fit:modmat.siredam2015),
                    +pred, fam, varb, id, root, data=redata2015) 
 
-rout2015<- reaster(resp~varb +fit:(block),list(parental=~0 + fit:modmat.siredam2015),
+rout2015b<- reaster(resp~varb +fit:(block),list(parental=~0 + modmat.siredam2015),
                 +pred, fam, varb, id, root, data=redata2015) 
 
 anova(rout2015a, rout2015)
 
-summary(rout2015)
+summary(rout2015b)
 
-#save(rout2015, file="rout2015.RData")
+save(rout2015b, file="rout2015b.RData")
 
 
 #2016 analysis
 rout2016a<- reaster(resp~varb,list(parental=~0 + fit:modmat.siredam2016),
                    +pred, fam, varb, id, root, data=redata2016)
 
-rout2016<- reaster(resp~varb +fit:(block),list(parental=~0 + fit:modmat.siredam2016),
+rout2016b<- reaster(resp~varb +fit:(block),list(parental=~0 + modmat.siredam2016),
                     +pred, fam, varb, id, root, data=redata2016)
 
 anova(rout2016a, rout2016)
 
-summary(rout2016) 
+summary(rout2016b) 
 
-#save(rout2016, file="rout2016.RData")
+save(rout2016b, file="rout2016b.RData")
 
 
 #2017 analysis
 rout2017a<- reaster(resp~varb,list(parental=~0 + fit:modmat.siredam2017),
                    +pred, fam, varb, id, root, data=redata2017) 
 
-rout2017<- reaster(resp~varb +fit:(block),list(parental=~0 + fit:modmat.siredam2017),
+rout2017b<- reaster(resp~varb +fit:(block),list(parental=~0 + modmat.siredam2017),
                    +pred, fam, varb, id, root, data=redata2017) 
 
 anova(rout2017a, rout2017)
 
-summary(rout2017)
+summary(rout2017b)
 
-#save(rout2017, file="rout2017.RData")
+save(rout2017b, file="rout2017b.RData")
 
 
 #####################################

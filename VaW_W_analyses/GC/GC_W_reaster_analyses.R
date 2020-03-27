@@ -32,7 +32,7 @@
 
 #Load 3-year data file for Grey Cloud Dunes
 
-setwd()
+setwd("C:/Users/Mason Kulbaba/Dropbox/git/adaptive-capacity/VaW_W_analyses/GC")
 
 gcdat<- read.csv("gcdata.csv")
 
@@ -326,46 +326,46 @@ modmat.siredam2017 <- cbind(modmat.sire2017,modmat.dam2017)
 
 
 #2015 analysis
-rout2015a<- reaster(resp~varb,list(parental=~0 + fit:modmat.siredam2015),
+rout2015a<- reaster(resp~varb,list(parental=~0 + modmat.siredam2015),
                    +pred, fam, varb, id, root, data=redata2015) 
 
-rout2015<- reaster(resp~varb +fit:(block),list(parental=~0 + fit:modmat.siredam2015),
+rout2015b<- reaster(resp~varb +fit:(block),list(parental=~0 + modmat.siredam2015),
                 +pred, fam, varb, id, root, data=redata2015) 
 
-anova(rout2015a, rout2015)
+anova(rout2015a, rout2015b)
 
-summary(rout2015)
+summary(rout2015b)
 
-#save(rout2015, file="rout2015.RData")
+save(rout2015b, file="rout2015b.RData")
 
 
 #2016 analysis
-rout2016a<- reaster(resp~varb,list(parental=~0 + fit:modmat.siredam2016),
+rout2016a<- reaster(resp~varb,list(parental=~0 + modmat.siredam2016),
                    +pred, fam, varb, id, root, data=redata2016)
 
-rout2016<- reaster(resp~varb +fit:(block),list(parental=~0 + fit:modmat.siredam2016),
+rout2016b<- reaster(resp~varb +fit:(block),list(parental=~0 + modmat.siredam2016),
                     +pred, fam, varb, id, root, data=redata2016)
-anova(rout2016a, rout2016)
+anova(rout2016a, rout2016b)
 
 
-summary(rout2016) 
+summary(rout2016b) 
 
-#save(rout2016, file="rout2016.RData")
+save(rout2016b, file="rout2016b.RData")
 
 
 #2017 analysis
-rout2017a<- reaster(resp~varb,list(parental=~0 + fit:modmat.siredam2017),
+rout2017a<- reaster(resp~varb,list(parental=~0 + modmat.siredam2017),
                    +pred, fam, varb, id, root, data=redata2017) 
 
-rout2017<- reaster(resp~varb +fit:(block),list(parental=~0 + fit:modmat.siredam2017),
+rout2017b<- reaster(resp~varb +fit:(block),list(parental=~0 + modmat.siredam2017),
                    +pred, fam, varb, id, root, data=redata2017)
 
 
-anova(rout2017a, rout2017)
+anova(rout2017a, rout2017b)
 
-summary(rout2017)
+summary(rout2017b)
 
-#save(rout2017, file="rout2017.RData")
+save(rout2017b, file="rout2017b.RData")
 
 
 #####################################
@@ -426,15 +426,15 @@ modmat.siredam <- cbind(modmat.sire,modmat.dam)
 #G x Time reaster analysis
 routGxTime.a<- reaster(resp~varb,list(parental=~0 + fit:modmat.siredam), +pred, fam, varb, id, root, data=redata) #without block
 
-routGxTime.b<- reaster(resp~varb + fit:(block),list(parental=~0 + fit:modmat.siredam),+pred, fam, varb, id, root, data=redata) #with block
+routGxTime.b<- reaster(resp~varb + fit:(block),list(parental=~0 + modmat.siredam),+pred, fam, varb, id, root, data=redata) #with block
 
 anova(routGxTime.a, routGxTime.b) #likelihood ratio test for effect of "block"
 
-routGxTime.c<- reaster(resp~varb+ fit:(year),list(parental=~0 + fit:modmat.siredam), +pred, fam, varb, id, root, data=redata) #with block and year
+routGxTime.c<- reaster(resp~varb+ fit:(year),list(parental=~0 + modmat.siredam), +pred, fam, varb, id, root, data=redata) #with block and year
 
 anova(routGxTime.a, routGxTime.c)#likelihood ratio test for effect of "year"
 
-routGxTime<- reaster(resp~varb +fit:(block + year),list(parental=~0 + fit:modmat.siredam, parental.time=~0 + fit:modmat.siredam:year),+pred, fam, varb, id, root, data=redata)#full model 
+routGxTime<- reaster(resp~varb +fit:(block + year),list(parental=~0 + modmat.siredam, parental.time=~0 + fit:modmat.siredam:year),+pred, fam, varb, id, root, data=redata)#full model 
 
 summary(routGxTime)
 

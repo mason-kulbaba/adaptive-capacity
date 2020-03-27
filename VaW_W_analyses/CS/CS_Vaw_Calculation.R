@@ -2,18 +2,18 @@
 # The following code calculates the additive genetic effects on total lifetime fitness
 # from the three reaster output files generated in: CS_W_reaster_analyses.R
 
-setwd()
+setwd("C:/Users/Mason Kulbaba/Dropbox/git/adaptive-capacity/VaW_W_analyses/CS")
 
 #Load reaster 
 
 #2015 reaster data
-load(file="rout2015.RData")
+load(file="rout2015b.RData")
 
 #2016 reaster data
-load(file="rout2016.RData")
+load(file="rout2016b.RData")
 
 #2017 reaster data
-load(file="rout2017.RData")
+load(file="rout2017b.RData")
 
 library(aster)
 
@@ -23,7 +23,7 @@ library(aster)
 #########################
 
 #extract bhat - the estimates of random effects
-bhat<- rout2015$b
+bhat<- rout2015b$b
 
 #extract the sire effects
 bhat.sire<- bhat[grep("paternalID", names(bhat))]
@@ -31,7 +31,7 @@ bhat.sire<- bhat[grep("paternalID", names(bhat))]
 #stem plot of bhat estimates
 stem(bhat.sire)#the canonical estimates "look" somewhat normal...as they should
 
-hoom <- predict(rout2015$obj, newcoef = rout2015$alpha)
+hoom <- predict(rout2015b$obj, newcoef = rout2015b$alpha)
 hoom<- matrix(hoom, ncol =5)
 hoom<- hoom[ , 5]
 
@@ -42,9 +42,9 @@ hoom<- hoom[ , 5]
 map <- function(b) {
   stopifnot(length(b) == 1)
   stopifnot(is.finite(b))
-  alpha <- rout2015$alpha
+  alpha <- rout2015b$alpha
   alpha[6] <- alpha[6] + b #block 1 effects
-  hoom <- predict(rout2015$obj, newcoef = alpha)
+  hoom <- predict(rout2015b$obj, newcoef = alpha)
   hoom <- matrix(hoom, ncol = 5)
   return(hoom[1, 5])# individual in block 1, fifth node
 }
@@ -71,13 +71,13 @@ cs2015den<- cbind(cs2015den[[1]], cs2015den[[2]])
 write.csv(cs2015den, "cs2015den.csv", quote = FALSE, row.names = FALSE)
 
 
-hoom<- predict(rout2015$obj, newcoef = rout2015$alpha, se.fit=TRUE)
+hoom<- predict(rout2015b$obj, newcoef = rout2015b$alpha, se.fit=TRUE)
 goom <- hoom$gradient
 moom<- goom[,5]
 moom<- matrix(moom, ncol=5)
 
 #this is additive genetic variation for fitness!
-CS_Va2015<- 4*moom[1 ,5]^2 * rout2015$nu[1]/map(0) 
+CS_Va2015<- 4*moom[1 ,5]^2 * rout2015b$nu[1]/map(0) 
 CS_Va2015 #3.204069
 
 
@@ -87,7 +87,7 @@ CS_Va2015 #3.204069
 CS_Va2015/1.80
 
 
-sout<- summary(rout2015)
+sout<- summary(rout2015b)
 
 #standard error for predicted change in fitness
 4*moom[1 ,5]^2 * sout$nu["parental", "Std. Error"]/1.80
@@ -98,7 +98,7 @@ sout<- summary(rout2015)
 #########################
 
 #extract bhat - the estimates of random effects
-bhat<- rout2016$b
+bhat<- rout2016b$b
 
 #extract the sire effects
 bhat.sire<- bhat[grep("paternalID", names(bhat))]
@@ -106,7 +106,7 @@ bhat.sire<- bhat[grep("paternalID", names(bhat))]
 #stem plot of bhat estimates
 stem(bhat.sire)#the canonical estimates "look" somewhat normal...as they should
 
-hoom <- predict(rout2016$obj, newcoef = rout2016$alpha)
+hoom <- predict(rout2016b$obj, newcoef = rout2016b$alpha)
 hoom<- matrix(hoom, ncol =5)
 hoom<- hoom[ , 5]
 
@@ -117,9 +117,9 @@ hoom<- hoom[ , 5]
 map <- function(b) {
   stopifnot(length(b) == 1)
   stopifnot(is.finite(b))
-  alpha <- rout2016$alpha
+  alpha <- rout2016b$alpha
   alpha[7] <- alpha[7] + b #block 2 effects
-  hoom <- predict(rout2016$obj, newcoef = alpha)
+  hoom <- predict(rout2016b$obj, newcoef = alpha)
   hoom <- matrix(hoom, ncol = 5)
   return(hoom[251, 5])# individual in block 2, fifth node
 }
@@ -147,16 +147,16 @@ write.csv(cs2016den, "cs2016den.csv", quote = FALSE, row.names = FALSE)
 
 
 
-hoom<- predict(rout2016$obj, newcoef = rout2016$alpha, se.fit=TRUE)
+hoom<- predict(rout2016b$obj, newcoef = rout2016b$alpha, se.fit=TRUE)
 goom <- hoom$gradient
 moom<- goom[,5]
 moom<- matrix(moom, ncol=5)
 
 #this is additive genetic variation for fitness!
-CS_Va2016<- 4*moom[251 ,5]^2 * rout2016$nu[1]/map(0)
+CS_Va2016<- 4*moom[251 ,5]^2 * rout2016b$nu[1]/map(0)
 CS_Va2016 #0.8562831
 
-sout<-summary(rout2016)
+sout<-summary(rout2016b)
 
 #recall mean fitness in 2016 = 0.73
 
@@ -172,7 +172,7 @@ CS_Va2016/0.73
 #########################
 
 #extract bhat - the estimates of random effects
-bhat<- rout2017$b
+bhat<- rout2017b$b
 
 #extract the sire effects
 bhat.sire<- bhat[grep("paternalID", names(bhat))]
@@ -180,7 +180,7 @@ bhat.sire<- bhat[grep("paternalID", names(bhat))]
 #stem plot of bhat estimates
 stem(bhat.sire)#the canonical estimates "look" somewhat normal...as they should
 
-hoom <- predict(rout2017$obj, newcoef = rout2017$alpha)
+hoom <- predict(rout2017b$obj, newcoef = rout2017b$alpha)
 hoom<- matrix(hoom, ncol =5)
 hoom<- hoom[ , 5]
 
@@ -191,9 +191,9 @@ hoom<- hoom[ , 5]
 map <- function(b) {
   stopifnot(length(b) == 1)
   stopifnot(is.finite(b))
-  alpha <- rout2017$alpha
+  alpha <- rout2017b$alpha
   alpha[8] <- alpha[8] + b #block 3 effects
-  hoom <- predict(rout2017$obj, newcoef = alpha)
+  hoom <- predict(rout2017b$obj, newcoef = alpha)
   hoom <- matrix(hoom, ncol = 5)
   return(hoom[971, 5])# individual in block 3, fifth node
 }
@@ -224,16 +224,16 @@ cs2017den<- cbind(cs2017den[[1]], cs2017den[[2]])
 write.csv(cs2017den, "cs2017den.csv", quote = FALSE, row.names = FALSE)
 
 
-hoom<- predict(rout2017$obj, newcoef = rout2017$alpha, se.fit=TRUE)
+hoom<- predict(rout2017b$obj, newcoef = rout2017b$alpha, se.fit=TRUE)
 goom <- hoom$gradient
 moom<- goom[,5]
 moom<- matrix(moom, ncol=5)
 
 #this is additive genetic variation for fitness!
-CS_Va2017<- 4*moom[971 ,5]^2 * rout2017$nu[1]/map(0) 
+CS_Va2017<- 4*moom[971 ,5]^2 * rout2017b$nu[1]/map(0) 
 CS_Va2017 #1.572956
 
-sout<-summary(rout2017)
+sout<-summary(rout2017b)
 
 #recall mean fitness in 2017 = 1.24
 
