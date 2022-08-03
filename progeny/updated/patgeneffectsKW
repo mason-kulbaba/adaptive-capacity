@@ -1,0 +1,71 @@
+2015:
+
+paternalID1   paternalID5   paternalID9  paternalID12  paternalID16 
+     1.963500      2.167589      2.347313      2.443118      2.261672 
+ paternalID20  paternalID23  paternalID26  paternalID30  paternalID39 
+     1.848955      3.808719      2.059234      3.179851      3.691534 
+ paternalID40  paternalID41  paternalID49  paternalID53  paternalID56 
+     3.626386      3.229356      2.043983      3.601924      1.811669 
+ paternalID59  paternalID60  paternalID68  paternalID71  paternalID75 
+     2.219762      1.917557      3.618809      2.219762      3.059832 
+ paternalID76  paternalID81  paternalID87  paternalID91  paternalID98 
+     2.645257      2.980348      2.264728      6.388361      2.214594 
+paternalID101 paternalID104 paternalID105 paternalID110 paternalID111 
+     1.837605      2.822565      1.954331      4.270011      2.672104 
+paternalID114 paternalID117 paternalID123 paternalID130 paternalID131 
+     2.178313      3.810196      2.023477      3.929071      2.223318 
+paternalID136 paternalID137 paternalID142 paternalID146 paternalID154 
+     2.882068      2.960150      2.176192      4.886541      3.107919 
+paternalID159 paternalID164 paternalID177 paternalID180 paternalID181 
+     2.110773      4.203484      2.401141      2.167631      2.547707 
+paternalID183 paternalID184 paternalID198 
+     3.558683      3.443294      2.134606   
+
+2016:
+
+paternalID0   paternalID1   paternalID5   paternalID9  paternalID12 
+    1.3057648     1.3452590     1.9249995     1.4686350     1.4614043 
+ paternalID16  paternalID20  paternalID23  paternalID26  paternalID30 
+    1.0155608     1.0067857     1.6150664     2.5358569     2.1412303 
+ paternalID39  paternalID40  paternalID41  paternalID49  paternalID53 
+    1.4280077     2.4718211     3.4655764     1.2359123     2.0385495 
+ paternalID56  paternalID59  paternalID60  paternalID68  paternalID71 
+    1.3883990     1.3502298     2.0351113     2.6385304     1.2892385 
+ paternalID75  paternalID76  paternalID81  paternalID87  paternalID91 
+    2.5285991     3.6201115     1.4141199     1.4933827     3.8361047 
+ paternalID98 paternalID101 paternalID104 paternalID105 paternalID110 
+    1.4610010     1.1090728     2.1294942     1.7573762     1.3749172 
+paternalID111 paternalID114 paternalID117 paternalID123 paternalID130 
+    2.4004437     1.3414992     4.1227801     1.3433890     1.9442258 
+paternalID131 paternalID136 paternalID137 paternalID142 paternalID146 
+    2.8003028     3.2299704     1.2537869     1.0263369     1.8355631 
+paternalID154 paternalID159 paternalID164 paternalID177 paternalID180 
+    1.7027286     1.6446627     1.8422975     2.8636820     1.3107499 
+paternalID181 paternalID183 paternalID184 paternalID198 
+    1.2986948     1.2976721     1.9862426     2.2873864
+
+
+2017:
+
+paternalID1   paternalID5   paternalID9  paternalID12  paternalID16 
+    0.4935774     0.6723342     1.4474239     0.8921295     0.6448559 
+ paternalID20  paternalID23  paternalID26  paternalID30  paternalID39 
+    0.4540971     1.0747079     0.7189718     2.2571313     1.0453786 
+ paternalID40  paternalID41  paternalID49  paternalID53  paternalID56 
+    1.1926125     1.3796446     0.6345847     0.4714124     1.0985862 
+ paternalID59  paternalID60  paternalID68  paternalID71  paternalID75 
+    1.0715518     0.8960151     0.9124096     0.6095068     0.5460567 
+ paternalID76  paternalID81  paternalID87  paternalID91  paternalID98 
+    1.1689558     1.0295916     0.6275144     2.1233497     1.1006240 
+paternalID101 paternalID104 paternalID105 paternalID110 paternalID111 
+    0.4622877     1.1965203     0.6510753     0.5263559     1.2582641 
+paternalID114 paternalID117 paternalID123 paternalID130 paternalID131 
+    0.8765018     1.7769985     0.7036347     0.6485230     1.1499730 
+paternalID136 paternalID137 paternalID142 paternalID146 paternalID154 
+    1.7484610     0.6447789     0.9434276     0.7612383     0.8579082 
+paternalID159 paternalID164 paternalID177 paternalID180 paternalID181 
+    0.7773575     1.7564150     1.2453516     0.8479229     0.6185379 
+paternalID183 paternalID184 paternalID198   maternalID2   maternalID4 
+    0.5911748     1.4684398     1.2976207  
+
+
