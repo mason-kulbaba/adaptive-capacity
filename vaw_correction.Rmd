@@ -1,6 +1,12 @@
 ---
 title: "Correction for @kulbaba-et-al"
-author: "Charles J. Geyer and Ruth G. Shaw"
+author:
+  - "Charles J. Geyer^[School of Statistics, University of Minnesota, geyer@umn.edu, https://orcid.org/0000-0003-1471-1703]"
+  - "Mason W. Kulbaba^[Department of Mathematics and Science, Our Lady of the Lake University, mkulbaba@ollusa.edu, https://orcid.org/0000-0003-0619-7089]"
+  - "Seema N. Sheth^[Department of Plant and Microbial Biology, North Carolina State University, https://orcid.org/0000-0001-8284-7608]"
+  - "Rachel E. Pain^[Department of Ecology, Evolution and Behavior, University of Minnesota]"
+  - "Vincent M. Eckhart^[Department of Biology, Grinnell College]"
+  - "Ruth G. Shaw^[Department of Ecology, Evolution and Behavior, University of Minnesota, shawx016@umn.edu]"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output:
   bookdown::pdf_document2:
@@ -15,13 +21,25 @@ csl: evolution.csl
 link-citations: true
 ---
 
+<!--
+-->
+
 # Abstract
 
-This corrects some calculations in @kulbaba-et-al that inadvertently
-failed to correct for subsampling as described by @aster2, Section 8
+In our paper, @kulbaba-et-al,
+we used aster analyses of records of components of fitness for three populations of *Chamaecrista fasciculata*, 
+each grown in its home location in three years. It is not feasible to obtain every fruit before it dehisces and releases its seeds. 
+For this reason and also because, in this and many other species, fruits may be numerous, it is common practice to obtain seed counts 
+from a subset of fruits. Aster methodology can account for such subsampling of a fitness node, and our aster models did so. 
+The error arose in the process of obtaining estimates of mean fitness and additive genetic variance for fitness. 
+Specifically, the proportion of fruits sampled to obtain seed counts was correctly included in the aster models,
+but the code to obtain estimates from these models did not account for the subsampling to scale up to the total number of seeds individuals produced. 
+This document presents reanalyses correcting this error by implementing calculations described by @aster2, Section 8
 of @tr661, and the Supplementary Material of @stanton-geddes-tiffin-shaw.
-While we were at it, we also changed "block" from a fixed effect to a random
-effect in order to simplify interpretation.
+Our reanalysis shows that the error did not affect the major qualitative conclusions, though numerical values differ.
+Unrelated to the matter of subsampling, we here also shift from treating "block" as a fixed factor to treating it as random. Either choice is
+justifiable; particularly because of the nonlinearity of parameterizations of generalized linear models, including aster, the choice to treat blocks as
+random simplifies interpretation.
 
 # License
 
@@ -60,18 +78,14 @@ library("kableExtra")
 
 Get data (if not done already).
 ```{r down}
-u <- paste0("https://raw.githubusercontent.com/mason-kulbaba/",
-    "adaptive-capacity/master/VaW_W_analyses/CS/csdata.csv")
-if (! file.exists("csdata.csv"))
-    download.file(u, "csdata.csv")
-u <- paste0("https://raw.githubusercontent.com/mason-kulbaba/",
-    "adaptive-capacity/master/VaW_W_analyses/GC/gcdata.csv")
-if (! file.exists("gcdata.csv"))
-    download.file(u, "gcdata.csv")
-u <- paste0("https://raw.githubusercontent.com/mason-kulbaba/",
-    "adaptive-capacity/master/VaW_W_analyses/KW/kwdata.csv")
-if (! file.exists("kwdata.csv"))
-    download.file(u, "kwdata.csv")
+prefix <- c("gc", "kw", "cs")
+for (p in prefix) {
+    f <- paste0(p, "data.csv")
+    u <- paste0("https://raw.githubusercontent.com/mason-kulbaba/",
+        "adaptive-capacity/master/VaW_W_analyses/", toupper(p), "/", f)
+    if (! file.exists(f))
+        download.file(u, f)
+}
 ```
 
 # Introduction
@@ -97,7 +111,7 @@ where the variables are
    conditionally Poisson.
 
  * `total.pods.collected` is number of pods collected,
-   conditionally Bernoulli.  The arrow leading to this node
+   conditionally Bernoulli (i.e. each pod may be collected or not).  The arrow leading to this node
    is a subsampling arrow.  The number of pods collected is
    a random sample of the pods produced.
 
@@ -155,7 +169,8 @@ dat <- transform(dat,
 
 ## Fix Data
 
-Check subsampling is correct.
+Check subsampling is correct, i.e. that the number of pods sampled from a given plant is not greater than the total number of pods it was recorded to
+have produced.
 ```{r oopsie}
 oopsie <- with(dat, total.pods.collected > total.pods)
 ```
@@ -170,10 +185,9 @@ if (any(oopsie))
     dat[oopsie, ]
 ```
 
-So this data error has to be checked and corrected.  But for now
-(to make immediate progress on computing) we just assume
+So this data error has to be corrected: we assume
 `total.pods` is correct and equal to `total.pods.collected`
-for this row of the data.
+for these rows of the data.
 ```{r subsamp.fix}
 if (any(oopsie))
     dat[oopsie, "total.pods.collected"] <- dat[oopsie, "total.pods"]
@@ -214,8 +228,10 @@ redata <- transform(redata,
 
 ## Random Effect Aster Model
 
-In order to have the same variance for the random effects for sires
-and dams we have to do the following.
+In our preliminary analyses that modeled sire and dam effects separately, we found their components of variance to be comparable in magnitude. This is
+evidence that there are negligible contributions of dominance and maternal effects to resemblance of sibs. It is thus valid to estimate a single common
+variance for the nuclear genetic contributions of sires and of dams to offspring fitness. 
+In order to have the same variance for the random effects for sires and dams we do the following.
 ```{r random.effect}
 modmat.sire <- model.matrix(~ 0 + fit:paternalID, redata)
 modmat.dam <- model.matrix(~ 0 + fit:maternalID, redata)
@@ -275,13 +291,13 @@ names(save.rout)
 
 # Fit More Models for Different Data
 
-Now we need to analyze the data in the following files.
+Now that we have an analysis for one of the populations in a single year, we are ready to carry out the same analysis for the remaining cases to
+obtain results for all three populations in each of three years. we need to analyze the data in the following files.
 ```{r more.data}
 more.data <- c("kwdata.csv", "csdata.csv")
 ```
 ```{r key.kw.cs, echo=FALSE}
 key <- lapply(more.data, tools::md5sum)
-key
 ```
 
 Now we need to do the same thing as in the preceding section, except
@@ -308,13 +324,18 @@ for (myyear in 2015:2017) {
 
 # Function to Map from Canonical to Mean Value Parameter
 
+As with generalized linear models, aster models are linear on
+a scale (the canonical parameter scale) that is a nonlinear transformation from the scale of biological measurement.
+To complete our analysis, we convert our estimates from the canonical parameter scale
+back to the measurement scale (the mean value parameter scale).
 We use the map factory concept (use a function to make another function).
 This provides many benefits over defining the function we want directly.
-It allows us to hide information in the function we make with the factory.
+It allows us to embed information in the function we make with the factory.
 It allows us to easily remake the function whenever we need it.
 And the latter is important, because the map from the canonical parameter
-scale to the mean value parameter scale depends on the data we have fit
-(depends on the fixed effects).
+scale to the mean value parameter scale depends on the data we have fit.
+In particular, and in contrast to standard linear models, estimates of
+variance components here depend on the fixed effects.
 ```{r factory}
 map.factory <- function(rout, is.subsamp) {
     stopifnot(inherits(rout, "reaster"))
@@ -355,6 +376,12 @@ from a possible value of a parental effect on the canonical parameter scale
 scale.  This depends on the model and the fixed effect parameters,
 which are taken from argument `rout`, and it corrects for subsampling,
 which is indicated by the argument `is.subsamp`.
+The specific line of code that corrects for subsampling is
+```
+xi <- xi[ , ! is.subsamp, drop = FALSE]
+```
+This makes the result a function of conditional means of non-subsampling
+arrows only.
 
 Note that we are ignoring blocks.  This is the same as setting the block
 effect to zero.  This is not the actual effect of any actual block. Rather, it
@@ -362,18 +389,20 @@ is something like the population mean of the population of blocks.
 Specifically, we are setting the block effect to be the mean of the
 distribution that the model says block effects have (mean zero normal).
 We acknowledge that the blocks are not a simple random sample
-of some population of blocks, but this is the usual way that probability
-theory is simplified for introductory statistics courses and also, commonly,
-in generalized linear models with random effects.  
+of some population of blocks, but this is not necessary for a random
+effects model to be appropriate.  We are using a model with block as a
+random effect to simplify interpretation: otherwise we would have different
+estimates for each block.
 
 **Caution:** this function does not handle the case where more than one node
 of the graph contributes to `fit` nor does it check.  It assumes we have
-a linear graph, which we do
+a linear graph, which we do.
 ```{r check.linear}
 identical(pred, seq(along = pred) - 1)
 ```
-(If we did not have a linear graph, then correction for subsampling would
-be much more complicated.)
+If we did not have a linear graph, then correction for subsampling would
+be much more complicated
+([appendix on that below](#appendix-mean-values-corrected-for-subsampling))
 
 Invoke the function to construct an R function `map` that maps from
 canonical to mean value parameter values for these data.
@@ -401,17 +430,16 @@ the canonical parameter scale and the mean value parameter scale and
 follows the conventional logic of generalized linear mixed models (GLMM)
 [@stiratelli-laird-ware] or aster models with random effects [@reaster].
 Admittedly, three standard deviations is a fairly extreme value for a normal
-random variable (happens with probability `r 2 * pnorm(-3)`).  
-Similar issues affect
+random variable (happens with probability `r 2 * pnorm(-3)`).  Similar issues affect
 all GLMM and aster models with random effects.
 
 # Distribution of Breeding Value Estimates
 
 R function `reaster` provides estimates of the "breeding values"
 (in scare quotes) on the
-canonical parameter scale.  Of course, these are not precisely estimates
+canonical parameter scale.  Of course, these are not precisely estimates,
 because breeding values are random effects rather than unknown parameters.
-So they are more analogous to BLUPS of breeding values in conventional
+So they are more analogous to BLUPS (best linear unbiased predictors) of breeding values in conventional
 quantitative genetics.  Except they are not really that either due to the
 nonlinearity of the mapping from canonical to mean values shown above.
 If we replace BLUP by best median unbiased, then maybe we have some sort
@@ -470,7 +498,7 @@ return(bar)
 density.all <- lapply(save.rout, fred)
 ```
 
-Now we want to try to redo Figure 2 in @kulbaba-et-al.
+Now we want to redo Figure 2 in @kulbaba-et-al. to present estimates of the distributions of breeding values for each population-year combination.
 We want three plots, one for each site, and three curves on each plot,
 one for each year.   And in order to use base R graphics, we need to find
 the maximum `x` value for each plot.  Or perhaps the minimum `x` value
@@ -518,7 +546,7 @@ legend(list(x = 4, y = 1.55), legend = as.character(2015:2017),
 Here we calculate mean fitness, additive genetic variance for fitness,
 and their ratio, which Fisher's fundamental theorem of natural selection
 (FFTNS)
-says is the per generation change in mean fitness due to natural selection.
+says predicts the per generation genetically based change in mean fitness due to natural selection.
 
 For this, following @tr696 we estimate mean fitness as
 ```{r mean.fitness}
@@ -566,10 +594,9 @@ return(list(mf = mf, vaw = vaw, fftns = fftns))
 save.fftns <- lapply(save.rout, fran)
 ```
 
-We have all three quantities (mean fitness, additive genetic variance
-for fitness, and the FFTNS prediction (their ratio)) saved, but we
-only make a table of additive genetic variance for fitness, following
-@kulbaba-et-al.
+We now have, for all nine cases, all three quantities (mean fitness, additive genetic variance
+for fitness, and the FFTNS prediction (their ratio)) saved. We present them in Table 1, below, once we
+obtain standard errors.
 
 ## Standard Errors Example
 
@@ -836,15 +863,15 @@ This is not the way that @kulbaba-et-al did confidence intervals
 for these parameters.  They reported double parametric bootstrap $t$ confidence
 intervals, which are not symmetric (so they do not have the form
 $\text{mean} \pm 1.96 \cdot \text{standard error}$ as would be our intervals
-(if we did report intervals rather than just standard errors).  They
-needed a double bootstrap because they did not have the standard error
-formulas we derive here, and thus needed a single bootstrap to estimate
-standard errors, and then a bootstap of the bootstrap (double bootstrap)
-to do confidence intervals.  Because the bootstrap is much more reliable
-than asymptotics, their intervals would have been better than ours except
+(if we did report intervals rather than just standard errors).  In that case,
+a double bootstrap was needed because the standard error
+formulas we derive here was not then available. It was thus necessary to conduct a single bootstrap to estimate
+standard errors, and then a bootstrap of the bootstrap (double bootstrap)
+to obtain confidence intervals.  Because the bootstrap is much more reliable
+than asymptotics, those intervals would have been better than the ones we give here, except
 for omitting the correction for subsampling.  Now, with the standard
 error formulas derived in this section available, one could do as well
-as one can do with single parametric bootstrap $t$ confidence intervals.
+as possible with single parametric bootstrap $t$ confidence intervals.
 But we do not take the extra computing time to do that in this correction.
 
 ## Standard Errors for All Subsets of the Data
@@ -857,7 +884,7 @@ sally <- function(rout) {
 <<deriv.too>>
 <<keep.various>>
 <<create.summary>>
-fishinv <- try(solve(sout$fisher))
+fishinv <- try(solve(sout$fisher), silent = TRUE)
 if (inherits(fishinv, "try-error"))
     return(list(mf = NA, vaw = NA, fftns = NA))
 <<dfftns>>
@@ -898,7 +925,18 @@ In this table there are two rows in which we cannot calculate standard
 errors because the (approximate) Fisher information matrix is too close
 to being singular and hence cannot be inverted.
 
-# Breeding Values versus Breeding Values
+Even if we could obtain finite standard errors with infinite
+precision arithmetic, they would be too large for computer arithmetic
+(which carries only 16 decimal places) to compute.  No matter what
+approximations or algorithms were used, these standard errors would be
+so large as to say that the estimates are very ill determined (could be
+arbitrarily far from the true unknown parameter values).
+
+For these two cases, of the nine, random effects aster models are 
+poorly behaved for these data. We note that the CERA plantings involved
+half as many individuals as those for the other two populations.
+
+# Plotting Breeding Values expressed in one year versus Breeding Values expressed in a second year
 
 This section is about reproducing Figure 3 in @kulbaba-et-al except with
 the correction for subsampling.
@@ -944,7 +982,93 @@ plot(save.e$cs2016, save.e$cs2017, xlab = "CERA 2016", ylab = "CERA 2017")
 
 <div id="refs"></div>
 
-# Appendix
+# Appendix: Mean Values Corrected for Subsampling
+
+Here is the general algorithm for mean values corrected for subsampling,
+*not necessarily for a linear graph*, which was assumed in the main text.
+
+ 1. Get the matrix `xi` like in the code for R functions `map.factory`
+    and `map.factory.too`.
+
+ 1. (This is the correction for subsampling.)  Change all components
+    of `xi` for subsampling arrows to one (so multiplication by such
+    does nothing.  Something like
+```
+xi[ , is.subsampling] <- 1
+```
+
+ 3. Create a matrix `mu` the same dimensions as `xi`.
+
+ 3. Traverse the graph, predecessors before successors (the way R package
+    `aster` works, this is just in column order for `xi` and `mu`).
+    So something like
+```
+for (i in seq_along(pred)) {
+}
+
+```
+ 5. If `pred[i] == 0` so the predecessor is an initial node, set
+    this column of `mu` to be the corresponding column of `root`
+    (which needs to be gotten from `aout$root` in the setup).
+    Something like
+```
+mu[ , i] <- root[ , i]
+```
+
+  6. Otherwise
+```
+mu[ , i] <- mu[ , pred[i]] * xi[ , i]
+```
+
+Putting that all together (this code has not been tested, so we are not
+sure it works).
+
+Somewhere above `function (b) {`
+```
+root <- aout$root
+```
+
+Then delete the lines
+```
+xi <- xi[ , ! is.subsamp, drop = FALSE]
+mu <- apply(xi, 1, prod)
+```
+
+And replace with
+```
+xi[ , is.subsampling] <- 1
+mu <- xi * NaN
+for (i in seq_along(pred))
+    if (pred[i] == 0) {
+        mu[ , i] <- root[ , i]
+    } else {
+        mu[ , i] <- mu[ , pred[i]] * xi[ , i]
+    }
+```
+
+Now we have the unconditional mean values, corrected for subsampling for
+all nodes.
+
+Finally we need the sum of the means for all fitness nodes for an individual.
+Something like
+```
+ifit.matrix <- matrix(ifit, nrow = nrow(mu), ncol = ncol(mu))
+mu[! ifit.matrix] <- 0
+mu <- rowSums(mu)
+```
+
+And now `mu` is a vector, mean fitness for each individual in the data.
+
+And, in general (if there are covariates other than `varb` which we do
+not have in these data), you do not want to return `mu[1]` but rather
+the component or components of interesting individuals.
+
+And, in general, one might not want predicted mean fitness for an individual
+in the data but rather for a hypothetical individual whose covariate values
+differ from those of individuals in the data.  And that is what argument
+`newdata` to R function `predict` is for.  But we won't go into that here.
+
+# Appendix: Reaster Summaries
 
 Show model fits.
 ```{r appendix, cache=TRUE, dependson=c("fit.save.one","fit.some.more","fit.even.more")}
